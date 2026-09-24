@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Onboard Prototype V5</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#102033;--muted:#6c7a8d;--line:#dfe6ef;
+  --brand:#0b5fff;--brand2:#5f9bff;--good:#0f9d58;--warn:#d98200;--danger:#d93025;
+  --shadow:0 14px 36px rgba(19,37,62,.12)
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+body{min-height:100vh}
+.app{width:min(100%,480px);min-height:100vh;margin:0 auto;background:linear-gradient(180deg,#edf4ff 0,#f9fbff 28%,#f4f7fb 100%);position:relative;overflow:hidden}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:23px}
+.logo{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 8px 22px rgba(11,95,255,.28)}
+.badge{font-size:12px;font-weight:800;background:#e8eef8;color:#355072;padding:7px 10px;border-radius:999px}
+.screen{display:none;padding:18px 20px 105px}.screen.active{display:block}
+.hero{padding:18px 0 8px}.hero h1{margin:0 0 12px;font-size:37px;line-height:1.04;letter-spacing:-1.2px}.hero p{margin:0;color:var(--muted);font-size:17px;line-height:1.5}
+.card{background:var(--card);border:1px solid rgba(219,227,238,.95);border-radius:22px;box-shadow:var(--shadow);padding:19px;margin-top:17px}
+.visual{margin-top:20px;height:185px;border-radius:20px;position:relative;overflow:hidden;background:radial-gradient(circle at 80% 18%,rgba(255,255,255,.92),transparent 24%),linear-gradient(135deg,#0b5fff,#73aeff)}
+.visual:before{content:"🚆";position:absolute;font-size:96px;left:32px;top:24px;filter:drop-shadow(0 14px 16px rgba(0,0,0,.18))}
+.visual:after{content:"YOUR JOURNEY. YOUR CHAT.";position:absolute;right:18px;bottom:18px;color:#fff;font-size:13px;font-weight:900;letter-spacing:1px}
+.step{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}
+.num{width:34px;height:34px;border-radius:12px;background:#e7f0ff;color:var(--brand);display:grid;place-items:center;font-weight:900}
+.step b{display:block;margin-bottom:3px}
+.small{font-size:13px;color:var(--muted)}.tiny{font-size:11px;color:var(--muted)}
+.notice{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:13px 14px;border-radius:15px;background:#eef5ff;color:#49627e;font-size:13px;line-height:1.45}
+.ok{background:#eaf8f0;color:#2b6d49}.warn{background:#fff6e7;color:#7a5500}
+.stack{display:grid;gap:10px;margin-top:16px}
+.btn{width:100%;border:0;border-radius:16px;padding:16px 18px;font-weight:900;font-size:16px;cursor:pointer;transition:.15s transform,.15s opacity}.btn:active{transform:scale(.985)}
+.primary{background:var(--brand);color:#fff;box-shadow:0 8px 20px rgba(11,95,255,.24)}.secondary{background:#edf3fb;color:#25415f}.ghost{background:transparent;border:1px solid var(--line);color:#42566f}.danger{background:#ffecec;color:#a92921}
+.loader{width:68px;height:68px;border:6px solid #dce8ff;border-top-color:var(--brand);border-radius:50%;margin:42px auto 18px;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.center{text-align:center}
+.linebadge{display:inline-flex;align-items:center;gap:7px;background:#e7f0ff;color:#0a56d8;padding:8px 11px;border-radius:999px;font-size:13px;font-weight:900}
+.route{font-size:25px;font-weight:900;line-height:1.15;margin:14px 0 6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.metric{background:#f7f9fc;border:1px solid var(--line);border-radius:14px;padding:12px}.metric b{display:block;font-size:17px;margin-top:4px}
+.input{width:100%;border:1px solid var(--line);border-radius:15px;padding:15px 16px;font-size:16px;background:#fff;outline:none}.input:focus{border-color:#8cb3ff;box-shadow:0 0 0 4px rgba(11,95,255,.08)}
+.choicegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.choice{padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;font-weight:800;cursor:pointer}.choice.active{border-color:#7fa8ff;background:#eef4ff;color:#0b5fff}
+.chathead{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}.online{font-size:12px;color:var(--good);font-weight:900}
+.messages{display:flex;flex-direction:column;gap:12px;margin:18px 0}.msg{max-width:84%;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid var(--line);box-shadow:0 6px 16px rgba(34,52,78,.05);cursor:pointer}.msg.me{margin-left:auto;background:var(--brand);color:#fff;border-color:var(--brand)}
+.msg .who{font-size:11px;font-weight:900;color:#557089;margin-bottom:4px}.msg.me .who{color:#dce8ff}.msg .time{font-size:10px;opacity:.62;margin-top:5px}
+.chatbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);background:rgba(255,255,255,.97);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:none;gap:8px}
+.chatbar.show{display:flex}.chatbar input{flex:1;border:1px solid var(--line);border-radius:14px;padding:12px 13px;font-size:15px}.send{width:48px;border:0;border-radius:14px;background:var(--brand);color:#fff;font-weight:900}
+.minibtn{border:0;background:#f0f3f7;border-radius:12px;padding:9px 10px;font-weight:800;color:#53677d}.safety{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.footer{display:flex;justify-content:center;gap:16px;margin-top:16px;font-size:12px;color:#718197}.hidden{display:none!important}
+.people{display:grid;gap:10px;margin-top:14px}.person{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:15px;background:#fff;cursor:pointer}
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#e7f0ff;color:#0b56d8;font-weight:900}
+.person .meta{flex:1}.person .meta b{display:block}.person .meta span{font-size:12px;color:var(--muted)}
+.request{padding:14px;border:1px solid #cfe0ff;background:#f4f8ff;border-radius:15px;margin-top:14px}.request .actions{display:flex;gap:8px;margin-top:10px}.request .actions button{flex:1}
+.modal{position:fixed;inset:0;background:rgba(7,18,32,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.show{display:flex}
+.sheet{width:min(480px,100%);background:#fff;border-radius:24px 24px 0 0;padding:20px;box-shadow:0 -15px 40px rgba(0,0,0,.2)}
+.sheet h3{margin:0 0 6px}.sheet p{margin:0;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin-top:12px}.tab{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:800}.tab.active{background:#eaf1ff;color:#0b5fff;border-color:#a9c5ff}
+.unread{display:inline-grid;place-items:center;min-width:21px;height:21px;padding:0 6px;border-radius:999px;background:#d93025;color:#fff;font-size:11px;font-weight:900}
+
+.permission-modal{
+  position:fixed;inset:0;background:rgba(7,18,32,.56);
+  display:none;align-items:center;justify-content:center;
+  padding:22px;z-index:50
+}
+.permission-modal.show{display:flex}
+.permission-box{
+  width:min(420px,100%);background:#fff;border-radius:24px;
+  padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.28)
+}
+.permission-icon{
+  width:62px;height:62px;border-radius:20px;
+  display:grid;place-items:center;margin:0 auto 14px;
+  background:#e9f1ff;font-size:30px
+}
+.permission-box h2{margin:0 0 8px;text-align:center;font-size:24px}
+.permission-box p{margin:0;color:var(--muted);line-height:1.5;text-align:center}
+.permission-points{margin:16px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.permission-points li{
+  background:#f7f9fc;border:1px solid var(--line);
+  border-radius:13px;padding:11px 12px;font-size:13px;color:#40566f
+}
+
+
+.gps-help{
+  margin-top:14px;padding:14px;border-radius:15px;
+  background:#fff7e8;color:#70510d;text-align:left;
+  border:1px solid #f2dfb6
+}
+.gps-help b{display:block;margin-bottom:5px}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><div class="logo">O</div>Onboard</div>
+    <div class="badge">V5 · Private Chat</div>
+  </div>
+
+  <section id="home" class="screen active">
+    <div class="hero">
+      <h1>Talk to the people travelling with you.</h1>
+      <p>Join your train room, chat publicly, then request a private 1-to-1 conversation if both commuters agree.</p>
+    </div>
+    <div class="visual"></div>
+    <div class="card">
+      <div class="step"><div class="num">1</div><div><b>Find your train</b><div class="small">Verify the journey.</div></div></div>
+      <div class="step"><div class="num">2</div><div><b>Join the train room</b><div class="small">Use a temporary nickname.</div></div></div>
+      <div class="step"><div class="num">3</div><div><b>Request private chat</b><div class="small">Private chat only starts after acceptance.</div></div></div>
+      <div class="stack">
+        <button class="btn primary" onclick="findTrain()">Find My Train</button>
+        <button class="btn secondary" onclick="startDemo()">Try Demo Journey</button>
+      </div>
+      <div class="notice">🔒 Private conversations are temporary and expire with the journey.</div>
+    </div>
+  </section>
+
+  <section id="finding" class="screen center">
+    <div class="loader"></div>
+    <h2 id="findingTitle">Finding your train…</h2>
+    <p class="small" id="findingText">Requesting your phone location and checking the Hurstbridge corridor.</p>
+    <div id="gpsCard" class="card hidden" style="text-align:left"></div>
+    <div class="stack">
+      <button id="demoFallback" class="btn secondary hidden" onclick="startDemo()">Use demo location instead</button>
+      <button class="btn ghost" onclick="go('home')">Cancel</button>
+    </div>
+  </section>
+
+  <section id="match" class="screen">
+    <div class="hero"><h1 style="font-size:30px">We found your train</h1><p>Confirm this is the service you’re travelling on.</p></div>
+    <div class="card">
+      <div class="row"><div class="linebadge">🚆 Hurstbridge Line</div><div style="font-size:12px;font-weight:900;color:var(--good)">94% demo match</div></div>
+      <div class="route">Flinders Street → Hurstbridge</div>
+      <div class="small">5:47 PM service</div>
+      <div class="grid2">
+        <div class="metric"><span class="tiny">NEAREST STATION</span><b id="nearestStation">Heidelberg</b></div>
+        <div class="metric"><span class="tiny">DISTANCE</span><b id="stationDistance">—</b></div>
+        <div class="metric"><span class="tiny">GPS ACCURACY</span><b id="gpsAccuracy">—</b></div>
+        <div class="metric"><span class="tiny">PHONE SPEED</span><b id="phoneSpeed">—</b></div>
+      </div>
+      <div class="notice ok" id="verifyNote">✓ Location verified.</div>
+      <div class="stack"><button class="btn primary" onclick="go('profile')">Yes, this is my train</button></div>
+    </div>
+  </section>
+
+  <section id="profile" class="screen">
+    <div class="hero"><h1 style="font-size:30px">Join this journey</h1><p>Choose your temporary nickname.</p></div>
+    <div class="card">
+      <input id="nickname" class="input" maxlength="20" placeholder="e.g. DaveV">
+      <div style="margin-top:16px" class="small"><b style="color:var(--ink)">Where are you?</b></div>
+      <div class="choicegrid">
+        <button class="choice" onclick="setCarriage(this,'Front')">Front</button>
+        <button class="choice active" onclick="setCarriage(this,'Middle')">Middle</button>
+        <button class="choice" onclick="setCarriage(this,'Rear')">Rear</button>
+        <button class="choice" onclick="setCarriage(this,'Not sure')">Not sure</button>
+      </div>
+      <div class="stack"><button class="btn primary" onclick="joinChat()">Join Onboard</button></div>
+    </div>
+  </section>
+
+  <section id="chat" class="screen">
+    <div class="chathead">
+      <div class="row">
+        <div><div class="linebadge">🚆 Hurstbridge</div><div style="font-weight:900;margin-top:8px">5:47 PM → Hurstbridge</div></div>
+        <div class="online">● 27 onboard</div>
+      </div>
+      <div class="tabs">
+        <button class="tab active">Public Room</button>
+        <button class="tab" onclick="go('privateList')">Private <span id="privateBadge" class="unread hidden">1</span></button>
+      </div>
+      <div class="small" style="margin-top:10px">Tap a commuter’s message or use People to request a private chat.</div>
+      <div class="safety">
+        <button class="minibtn" onclick="go('people')">People</button>
+        <button class="minibtn" onclick="alert('Report options would open here.')">Report</button>
+        <button class="minibtn" onclick="leaveRoom()">Leave</button>
+      </div>
+    </div>
+
+    <div id="incomingRequest" class="request hidden">
+      <b>Private chat request</b>
+      <div class="small" style="margin-top:4px">Sarah wants to start a private chat with you.</div>
+      <div class="actions">
+        <button class="btn primary" style="padding:11px" onclick="acceptIncoming()">Accept</button>
+        <button class="btn secondary" style="padding:11px" onclick="declineIncoming()">Decline</button>
+      </div>
+    </div>
+
+    <div id="messages" class="messages">
+      <div class="msg" onclick="openPerson('Sarah','Middle')"><div class="who">Sarah · Middle</div>Morning everyone 👋<div class="time">6:18 PM</div></div>
+      <div class="msg" onclick="openPerson('TrainGuy84','Rear')"><div class="who">TrainGuy84 · Rear</div>Anyone know why we’re crawling near Clifton Hill? 😂<div class="time">6:19 PM</div></div>
+      <div class="msg" onclick="openPerson('FootyFan','Front')"><div class="who">FootyFan · Front</div>Anyone getting off at Heidelberg?<div class="time">6:19 PM</div></div>
+    </div>
+
+    <div class="notice">🛡️ Private messages require acceptance. Block and report are available in every private conversation.</div>
+  </section>
+
+  <section id="people" class="screen">
+    <div class="hero"><h1 style="font-size:30px">People onboard</h1><p>These commuters are currently in this train room.</p></div>
+    <div class="card">
+      <div class="people">
+        <div class="person" onclick="openPerson('Sarah','Middle')"><div class="avatar">S</div><div class="meta"><b>Sarah</b><span>Middle · joined 8 min ago</span></div><span>›</span></div>
+        <div class="person" onclick="openPerson('TrainGuy84','Rear')"><div class="avatar">T</div><div class="meta"><b>TrainGuy84</b><span>Rear · joined 11 min ago</span></div><span>›</span></div>
+        <div class="person" onclick="openPerson('FootyFan','Front')"><div class="avatar">F</div><div class="meta"><b>FootyFan</b><span>Front · joined 4 min ago</span></div><span>›</span></div>
+      </div>
+      <div class="stack"><button class="btn ghost" onclick="go('chat')">Back to train room</button></div>
+    </div>
+  </section>
+
+  <section id="privateList" class="screen">
+    <div class="hero"><h1 style="font-size:30px">Private chats</h1><p>Only accepted 1-to-1 conversations appear here.</p></div>
+    <div class="card">
+      <div id="privateEmpty" class="small">No accepted private chats yet.</div>
+      <div id="privateSarah" class="person hidden" onclick="openPrivate('Sarah')">
+        <div class="avatar">S</div>
+        <div class="meta"><b>Sarah</b><span>Private chat · expires after this journey</span></div>
+        <span id="sarahUnread" class="unread">1</span>
+      </div>
+      <div class="stack"><button class="btn ghost" onclick="go('chat')">Back to public room</button></div>
+    </div>
+  </section>
+
+  <section id="privateChat" class="screen">
+    <div class="chathead">
+      <div class="row">
+        <div><div class="linebadge">🔒 Private</div><div style="font-weight:900;margin-top:8px" id="privateTitle">Sarah</div></div>
+        <div class="small">1-to-1</div>
+      </div>
+      <div class="small" style="margin-top:8px">Temporary conversation · expires with the train journey</div>
+      <div class="safety">
+        <button class="minibtn" onclick="alert('This commuter would be blocked.')">Block</button>
+        <button class="minibtn" onclick="alert('This conversation would be reported for review.')">Report</button>
+        <button class="minibtn" onclick="go('privateList')">Back</button>
+      </div>
+    </div>
+    <div id="privateMessages" class="messages">
+      <div class="msg"><div class="who">Sarah</div>Hey — saw your message in the train room. Are you getting off at Heidelberg too?<div class="time">6:21 PM</div></div>
+    </div>
+    <div class="notice">🔒 Only you and the other commuter can see this private chat in the prototype.</div>
+  </section>
+
+  <div id="chatbar" class="chatbar">
+    <input id="chatInput" placeholder="Say something…" onkeydown="if(event.key==='Enter')sendMessage()">
+    <button class="send" onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<div id="personModal" class="modal">
+  <div class="sheet">
+    <div class="row">
+      <div><h3 id="personName">Sarah</h3><p id="personMeta">Middle · joined this journey</p></div>
+      <button class="minibtn" onclick="closePerson()">✕</button>
+    </div>
+    <div class="notice">Private chat requests must be accepted before messages can be exchanged.</div>
+    <div class="stack">
+      <button class="btn primary" onclick="requestPrivate()">Request Private Chat</button>
+      <button class="btn secondary" onclick="alert('This commuter would be hidden from your experience.')">Block</button>
+      <button class="btn danger" onclick="alert('Report options would open here.')">Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentNickname='Traveller';
+let carriage='Middle';
+let currentPerson={name:'Sarah',carriage:'Middle'};
+let privateAccepted=false;
+let currentMode='public';
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentMode = id==='privateChat' ? 'private' : 'public';
+  document.getElementById('chatbar').classList.toggle('show', id==='chat' || id==='privateChat');
+  document.getElementById('chatInput').placeholder = id==='privateChat' ? 'Private message…' : 'Say something…';
+  window.scrollTo(0,0);
+}
+
+const stations=[
+["Flinders Street",-37.8183,144.9671],["Parliament",-37.8111,144.9731],
+["Jolimont",-37.8165,144.9841],["West Richmond",-37.8149,144.9914],
+["North Richmond",-37.8102,144.9924],["Collingwood",-37.8045,144.9935],
+["Victoria Park",-37.7992,144.9945],["Clifton Hill",-37.7887,144.9954],
+["Westgarth",-37.7806,144.9958],["Dennis",-37.7792,145.0084],
+["Fairfield",-37.7790,145.0169],["Alphington",-37.7784,145.0312],
+["Darebin",-37.7748,145.0386],["Ivanhoe",-37.7699,145.0454],
+["Eaglemont",-37.7638,145.0539],["Heidelberg",-37.7571,145.0607],
+["Rosanna",-37.7429,145.0660],["Macleod",-37.7260,145.0693],
+["Watsonia",-37.7105,145.0838],["Greensborough",-37.7046,145.1030],
+["Montmorency",-37.7153,145.1215],["Eltham",-37.7136,145.1478],
+["Diamond Creek",-37.6733,145.1587],["Wattle Glen",-37.6639,145.1817],
+["Hurstbridge",-37.6384,145.1928]
+];
+
+
+function findTrain(){
+  document.getElementById('gpsPermissionModal').classList.add('show');
+}
+
+function closeGpsPermission(){
+  document.getElementById('gpsPermissionModal').classList.remove('show');
+}
+
+function confirmGpsPermission(){
+  closeGpsPermission();
+  requestGpsNow();
+}
+
+function requestGpsNow(){
+  go('finding');
+
+  const title=document.getElementById('findingTitle');
+  const text=document.getElementById('findingText');
+  const card=document.getElementById('gpsCard');
+  const demo=document.getElementById('demoFallback');
+
+  title.textContent='Getting your iPhone location…';
+  text.textContent='Waiting for Safari to return your GPS position.';
+  card.classList.add('hidden');
+  demo.classList.add('hidden');
+
+  // GitHub Pages should be HTTPS, but make the problem obvious if it is not.
+  if(!window.isSecureContext){
+    title.textContent='HTTPS is required';
+    text.textContent='Location only works from a secure HTTPS page.';
+    card.classList.remove('hidden');
+    card.innerHTML='<div class="gps-help"><b>Open the GitHub Pages HTTPS address</b>Make sure the URL begins with <strong>https://</strong>.</div>';
+    demo.classList.remove('hidden');
+    return;
+  }
+
+  if(!navigator.geolocation){
+    title.textContent='Location is not supported';
+    text.textContent='Safari is not exposing browser location on this device.';
+    demo.classList.remove('hidden');
+    return;
+  }
+
+  let finished=false;
+
+  const hardTimeout=setTimeout(()=>{
+    if(finished) return;
+    finished=true;
+    title.textContent='Location request timed out';
+    text.textContent='Safari did not return a GPS position.';
+    card.classList.remove('hidden');
+    card.innerHTML=
+      '<div class="gps-help">'+
+      '<b>On iPhone, check:</b>'+
+      'Settings → Privacy & Security → Location Services → Safari Websites → While Using the App.'+
+      '<br><br>Also make sure <strong>Precise Location</strong> is enabled for Safari Websites.'+
+      '</div>'+
+      '<div class="stack">'+
+      '<button class="btn secondary" onclick="requestGpsNow()">Try Again</button>'+
+      '</div>';
+    demo.classList.remove('hidden');
+  },12000);
+
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      if(finished) return;
+      finished=true;
+      clearTimeout(hardTimeout);
+
+      const c=pos.coords;
+      const speedText=c.speed==null?'Unknown':(c.speed*3.6).toFixed(0)+' km/h';
+
+      card.classList.remove('hidden');
+      card.innerHTML=
+        '<b style="color:var(--good)">✓ GPS received</b>'+
+        '<div class="grid2">'+
+        '<div class="metric"><span class="tiny">ACCURACY</span><b>'+Math.round(c.accuracy)+' m</b></div>'+
+        '<div class="metric"><span class="tiny">SPEED</span><b>'+speedText+'</b></div>'+
+        '</div>'+
+        '<div class="tiny" style="margin-top:8px">Your coordinates are used only for this train match and are not shown to other commuters.</div>';
+
+      title.textContent='Location received';
+      text.textContent='Checking your position against the Hurstbridge rail corridor…';
+      setTimeout(()=>matchGps(c),600);
+    },
+    err=>{
+      if(finished) return;
+      finished=true;
+      clearTimeout(hardTimeout);
+
+      title.textContent='Location could not be used';
+
+      let reason='Safari could not return your GPS position.';
+      if(err.code===1) reason='Location permission is blocked for this website.';
+      if(err.code===2) reason='Your iPhone could not determine its current location.';
+      if(err.code===3) reason='The GPS request timed out.';
+
+      text.textContent=reason;
+      card.classList.remove('hidden');
+
+      card.innerHTML=
+        '<div class="gps-help">'+
+        '<b>Fix on iPhone</b>'+
+        'Settings → Privacy & Security → Location Services → Safari Websites → While Using the App.'+
+        '<br><br>Then return to Onboard, refresh the page and tap <strong>Find My Train</strong> again.'+
+        '</div>'+
+        '<div class="stack">'+
+        '<button class="btn secondary" onclick="requestGpsNow()">Try Again</button>'+
+        '</div>';
+
+      demo.classList.remove('hidden');
+    },
+    {
+      enableHighAccuracy:true,
+      timeout:10000,
+      maximumAge:0
+    }
+  );
+}
+
+function matchGps(c){
+  let best=null;
+  stations.forEach(s=>{
+    const d=haversine(c.latitude,c.longitude,s[1],s[2]);
+    if(!best || d<best.d) best={name:s[0],d};
+  });
+
+  document.getElementById('nearestStation').textContent=best.name;
+  document.getElementById('stationDistance').textContent=
+    best.d<1000 ? Math.round(best.d)+' m' : (best.d/1000).toFixed(1)+' km';
+  document.getElementById('gpsAccuracy').textContent=Math.round(c.accuracy)+' m';
+  document.getElementById('phoneSpeed').textContent=
+    c.speed==null ? 'Unknown' : (c.speed*3.6).toFixed(0)+' km/h';
+
+  const nearCorridor=best.d<1800;
+  document.getElementById('verifyNote').textContent=nearCorridor
+    ? '✓ Your GPS position is close to the Hurstbridge rail corridor.'
+    : 'Your GPS was received, but you are not currently close to the Hurstbridge rail corridor.';
+  go('match');
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371000,rad=x=>x*Math.PI/180;
+  const dLat=rad(lat2-lat1),dLon=rad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+function startDemo(){
+  go('finding');
+  document.getElementById('findingTitle').textContent='Using demo journey';
+  document.getElementById('findingText').textContent='Simulating a commuter near Heidelberg.';
+  setTimeout(()=>{
+    document.getElementById('nearestStation').textContent='Heidelberg';
+    document.getElementById('stationDistance').textContent='35 m';
+    document.getElementById('gpsAccuracy').textContent='18 m';
+    document.getElementById('phoneSpeed').textContent='54 km/h';
+    document.getElementById('verifyNote').textContent='Demo journey loaded.';
+    go('match');
+  },700);
+}
+function setCarriage(el,value){document.querySelectorAll('#profile .choice').forEach(x=>x.classList.remove('active'));el.classList.add('active');carriage=value}
+function joinChat(){currentNickname=document.getElementById('nickname').value.trim()||'Traveller'+Math.floor(Math.random()*900+100);go('chat');setTimeout(()=>document.getElementById('incomingRequest').classList.remove('hidden'),2500)}
+function openPerson(name,loc){currentPerson={name,carriage:loc};document.getElementById('personName').textContent=name;document.getElementById('personMeta').textContent=loc+' · joined this journey';document.getElementById('personModal').classList.add('show')}
+function closePerson(){document.getElementById('personModal').classList.remove('show')}
+function requestPrivate(){
+  closePerson();
+  alert('Private chat request sent to '+currentPerson.name+'. In the prototype we will simulate acceptance.');
+  if(currentPerson.name==='Sarah'){
+    setTimeout(()=>{
+      privateAccepted=true;
+      document.getElementById('privateSarah').classList.remove('hidden');
+      document.getElementById('privateEmpty').classList.add('hidden');
+      document.getElementById('privateBadge').classList.remove('hidden');
+      alert('Sarah accepted your private chat request.');
+    },500);
+  } else {
+    alert(currentPerson.name+' has not accepted yet.');
+  }
+}
+function acceptIncoming(){
+  privateAccepted=true;
+  document.getElementById('incomingRequest').classList.add('hidden');
+  document.getElementById('privateSarah').classList.remove('hidden');
+  document.getElementById('privateEmpty').classList.add('hidden');
+  document.getElementById('privateBadge').classList.remove('hidden');
+  go('privateChat');
+}
+function declineIncoming(){document.getElementById('incomingRequest').classList.add('hidden')}
+function openPrivate(name){
+  document.getElementById('privateTitle').textContent=name;
+  document.getElementById('sarahUnread').classList.add('hidden');
+  document.getElementById('privateBadge').classList.add('hidden');
+  go('privateChat');
+}
+function sendMessage(){
+  const input=document.getElementById('chatInput');const text=input.value.trim();if(!text)return;
+  const d=document.createElement('div');d.className='msg me';
+  const now=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+  if(currentMode==='private'){
+    d.innerHTML='<div class="who">'+esc(currentNickname)+'</div>'+esc(text)+'<div class="time">'+now+'</div>';
+    document.getElementById('privateMessages').appendChild(d);
+  } else {
+    d.innerHTML='<div class="who">'+esc(currentNickname)+' · '+esc(carriage)+'</div>'+esc(text)+'<div class="time">'+now+'</div>';
+    document.getElementById('messages').appendChild(d);
+  }
+  input.value='';window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function leaveRoom(){if(confirm('Leave this train chat?'))go('home')}
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+</script>
+
+<div id="gpsPermissionModal" class="permission-modal">
+  <div class="permission-box">
+    <div class="permission-icon">📍</div>
+    <h2>Enable Location</h2>
+    <p>Onboard uses your iPhone location to work out which train you are travelling on.</p>
+
+    <ul class="permission-points">
+      <li>✓ Your location is not shown to other commuters</li>
+      <li>✓ It is used only to match you to your train</li>
+      <li>✓ You can change permission later in iPhone Settings</li>
+    </ul>
+
+    <div class="stack">
+      <button class="btn primary" onclick="confirmGpsPermission()">Enable Location</button>
+      <button class="btn ghost" onclick="closeGpsPermission()">Not Now</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
