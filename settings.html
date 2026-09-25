@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>All Aboard — Settings</title>
+<style>
+
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#102033;--muted:#6c7a8d;--line:#dfe6ef;
+  --blue:#0b7df4;--green:#10a861;--purple:#7440e9;--shadow:0 14px 34px rgba(16,32,51,.12)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+.app{max-width:520px;margin:auto;min-height:100vh;background:#fff}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px}
+.brand{font-size:24px;font-weight:900}
+.tag{font-size:12px;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:800;font-size:16px;cursor:pointer}
+.back{display:inline-block;color:var(--ink);text-decoration:none;font-weight:800}
+.section{padding:18px}
+label{display:block;font-weight:800;margin-bottom:7px}
+input,select{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;font-size:16px;background:#fff;color:var(--ink)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.switch{position:relative;width:50px;height:28px;flex:0 0 auto}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#c8d0da;border-radius:999px;transition:.2s}
+.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:var(--blue)}
+.switch input:checked + .slider:before{transform:translateX(22px)}
+.note{font-size:13px;color:var(--muted);line-height:1.45}
+
+h1{margin:4px 0 0;font-size:30px}
+.group{padding:18px;margin:0 18px 16px}
+.group h2{margin:0 0 4px;font-size:21px}
+.field{margin-top:16px}
+.save{width:100%;background:var(--blue);color:#fff;margin-top:18px}
+.saved{font-size:13px;color:#0b7c43;text-align:center;margin-top:10px;min-height:18px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <a class="back" href="index.html">← Menu</a>
+    <div><h1>Settings</h1></div>
+    <div style="width:54px"></div>
+  </div>
+
+  <div class="card group">
+    <h2>About You <span class="note">(Optional)</span></h2>
+    <div class="note">These details are not mandatory and are not shown unless you choose to use them.</div>
+
+    <div class="field">
+      <label for="nickname">Nickname</label>
+      <input id="nickname" maxlength="30" placeholder="How you appear in chat">
+    </div>
+
+    <div class="field">
+      <label for="age">Age bracket</label>
+      <select id="age">
+        <option value="">Prefer not to say</option>
+        <option>18–27</option>
+        <option>28–36</option>
+        <option>37–45</option>
+        <option>46–55</option>
+        <option>56–65</option>
+        <option>66+</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="gender">Gender</label>
+      <select id="gender">
+        <option value="">Prefer not to say</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Non-binary</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card group">
+    <h2>Chat Preferences</h2>
+    <div class="row">
+      <div><b>Allow private chats</b><div class="note">Let other users send you direct messages.</div></div>
+      <label class="switch"><input id="privateChats" type="checkbox"><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div><b>Allow group chats</b><div class="note">Chat with others on your train.</div></div>
+      <label class="switch"><input id="groupChats" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div><b>Show online status</b><div class="note">Let others see when you’re online.</div></div>
+      <label class="switch"><input id="onlineStatus" type="checkbox"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <div class="card group">
+    <h2>Notifications</h2>
+    <div class="row">
+      <div><b>Train alerts</b><div class="note">Service and timetable notifications.</div></div>
+      <label class="switch"><input id="trainAlerts" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div><b>Chat notifications</b><div class="note">New messages and mentions.</div></div>
+      <label class="switch"><input id="chatNotifications" type="checkbox" checked><span class="slider"></span></label>
+    </div>
+
+    <button class="btn save" id="saveBtn">Save Settings</button>
+    <div id="saved" class="saved"></div>
+  </div>
+</div>
+
+<script>
+const ids=["nickname","age","gender","privateChats","groupChats","onlineStatus","trainAlerts","chatNotifications"];
+function load(){
+  const data=JSON.parse(localStorage.getItem("allAboardSettings")||"{}");
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el.type==="checkbox"){
+      if(Object.prototype.hasOwnProperty.call(data,id)) el.checked=!!data[id];
+    } else if(data[id]!==undefined) el.value=data[id];
+  });
+}
+function save(){
+  const data={};
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    data[id]=el.type==="checkbox"?el.checked:el.value;
+  });
+  localStorage.setItem("allAboardSettings",JSON.stringify(data));
+  document.getElementById("saved").textContent="Saved on this device.";
+  setTimeout(()=>document.getElementById("saved").textContent="",2200);
+}
+document.getElementById("saveBtn").addEventListener("click",save);
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>All Aboard — Train Chat</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#102033;--muted:#6c7a8d;--line:#dfe6ef;
+  --blue:#0b7df4;--purple:#7440e9;--good:#0f9d58;
+  --shadow:0 14px 34px rgba(16,32,51,.12)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
+.app{max-width:520px;margin:auto;min-height:100vh;background:#fff}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+.back{color:var(--ink);text-decoration:none;font-weight:900}
+.title{font-size:23px;font-weight:900}
+.page{padding:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+.hero{
+  height:230px;
+  background:
+    linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.28)),
+    url("assets/all-aboard-melbourne.png") center 56%/cover no-repeat;
+}
+.confirm{padding:26px 22px 22px;text-align:center}
+.train-icon{
+  width:66px;height:66px;margin:-58px auto 14px;border-radius:50%;
+  display:grid;place-items:center;background:var(--blue);color:#fff;
+  border:6px solid #fff;font-size:31px;box-shadow:0 7px 18px rgba(11,125,244,.25)
+}
+.eyebrow{font-size:20px;margin-bottom:8px}
+.service{font-size:31px;line-height:1.05;font-weight:950;margin:0 auto 12px;max-width:360px}
+.sub{font-size:19px;line-height:1.35;color:var(--muted);margin:0 auto 20px;max-width:350px}
+.btn{
+  width:100%;border:0;border-radius:16px;padding:15px 16px;font-weight:900;
+  font-size:17px;cursor:pointer
+}
+.primary{background:var(--blue);color:#fff}
+.secondary{background:#fff;color:var(--blue);border:1px solid #ccd7e5;margin-top:10px}
+.room{display:none}
+.room.active{display:block}
+.confirm-page.hidden{display:none}
+.room-head{padding:18px;border-bottom:1px solid var(--line)}
+.room-title{font-size:22px;font-weight:950}
+.service-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.service-row .ico{font-size:30px}
+.status{font-size:13px;color:var(--muted)}
+.green{color:var(--good);font-weight:900}
+.messages{padding:18px;min-height:470px;background:#fff}
+.msg{display:flex;gap:10px;margin:17px 0}
+.avatar{
+  width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  font-weight:900;background:#dfeeff;color:#0b5fc6;flex:0 0 auto
+}
+.msg-body{max-width:78%}
+.meta{font-size:13px;margin-bottom:5px}.name{font-weight:900}.time{color:var(--muted);margin-left:7px}
+.bubble{background:#f0f2f5;border-radius:15px;padding:11px 13px;font-size:15px;line-height:1.35}
+.mine{justify-content:flex-end}.mine .avatar{display:none}.mine .bubble{background:#e8f1ff}
+.composer{
+  position:sticky;bottom:0;padding:12px 14px 18px;background:#fff;border-top:1px solid var(--line);
+  display:flex;gap:9px
+}
+.composer input{flex:1;border:1px solid #ccd7e5;border-radius:999px;padding:13px 16px;font-size:16px}
+.send{
+  width:48px;height:48px;border-radius:50%;border:0;background:var(--blue);color:#fff;
+  font-size:20px;font-weight:900;cursor:pointer
+}
+.people{font-size:14px;font-weight:900}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div id="confirmPage" class="confirm-page">
+    <div class="topbar">
+      <a class="back" href="index.html">← Menu</a>
+      <div class="title">Chat</div>
+      <div style="width:50px"></div>
+    </div>
+
+    <div class="page">
+      <div class="card">
+        <div class="hero"></div>
+        <div class="confirm">
+          <div class="train-icon">🚆</div>
+          <div class="eyebrow">You are on Train</div>
+          <div class="service">9:57 Hurstbridge to City</div>
+          <p class="sub">Start chatting to your fellow travellers.</p>
+          <button id="joinBtn" class="btn primary">💬 Join Train Chat</button>
+          <button class="btn secondary" onclick="location.href='live_trains.html'">🚆 Choose a different train</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="room" class="room">
+    <div class="topbar">
+      <button id="roomBack" class="back" style="border:0;background:none;font-size:16px">← Back</button>
+      <div class="title">9:57 Hurstbridge to City</div>
+      <div class="people">👥 6</div>
+    </div>
+
+    <div class="room-head">
+      <div class="service-row">
+        <div class="ico">🚆</div>
+        <div>
+          <div style="font-weight:900">Hurstbridge → City</div>
+          <div class="status"><span class="green">●</span> Departed 9:57 · Scheduled service</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="messages" class="messages">
+      <div class="msg">
+        <div class="avatar">JS</div>
+        <div class="msg-body">
+          <div class="meta"><span class="name">Jess</span><span class="time">10:01</span></div>
+          <div class="bubble">Beautiful day for a train ride! ☀️</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="avatar" style="background:#e8e0ff;color:#5631c6">MK</div>
+        <div class="msg-body">
+          <div class="meta"><span class="name">Matt</span><span class="time">10:03</span></div>
+          <div class="bubble">Not many on today 👍</div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="avatar" style="background:#dcf7ee;color:#078257">SL</div>
+        <div class="msg-body">
+          <div class="meta"><span class="name">Sarah</span><span class="time">10:05</span></div>
+          <div class="bubble">Anyone getting off at Parliament?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <input id="msgInput" placeholder="Type a message...">
+      <button id="sendBtn" class="send">➤</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const confirmPage=document.getElementById("confirmPage");
+const room=document.getElementById("room");
+
+document.getElementById("joinBtn").addEventListener("click",()=>{
+  confirmPage.classList.add("hidden");
+  room.classList.add("active");
+  window.scrollTo(0,0);
+});
+
+document.getElementById("roomBack").addEventListener("click",()=>{
+  room.classList.remove("active");
+  confirmPage.classList.remove("hidden");
+  window.scrollTo(0,0);
+});
+
+function sendMessage(){
+  const input=document.getElementById("msgInput");
+  const value=input.value.trim();
+  if(!value)return;
+  const row=document.createElement("div");
+  row.className="msg mine";
+  row.innerHTML='<div class="msg-body"><div class="bubble"></div></div>';
+  row.querySelector(".bubble").textContent=value;
+  document.getElementById("messages").appendChild(row);
+  input.value="";
+  row.scrollIntoView({behavior:"smooth",block:"end"});
+}
+document.getElementById("sendBtn").addEventListener("click",sendMessage);
+document.getElementById("msgInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter")sendMessage();
+});
+</script>
+</body>
+</html>
