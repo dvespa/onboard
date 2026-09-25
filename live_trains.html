@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>All Aboard V9 - Friday Timetable Tracker</title>
+<title>All Aboard V12 - Friday Timetable Tracker</title>
 <style>
 :root{--bg:#f4f7fb;--card:#fff;--ink:#102033;--muted:#6c7a8d;--line:#dfe6ef;--brand:#0b5fff;--loop:#d50032;--good:#0f9d58;--warn:#d98200;--shadow:0 14px 36px rgba(19,37,62,.12)}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
@@ -14,7 +14,7 @@
 </style>
 </head>
 <body>
-<a href="index.html" style="position:fixed;top:12px;left:12px;z-index:9999;background:white;border:1px solid #dfe6ef;border-radius:999px;padding:9px 13px;text-decoration:none;color:#102033;font:700 14px system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.10)">← Menu</a><div class="app"><div class="top"><div class="brand"><div class="logo">O</div>All Aboard</div><div class="pill">V9 - Official Friday · V8 Loop</div></div>
+<a href="index.html" style="position:fixed;top:12px;left:12px;z-index:9999;background:white;border:1px solid #dfe6ef;border-radius:999px;padding:9px 13px;text-decoration:none;color:#102033;font:700 14px system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.10)">← Menu</a><div class="app"><div class="top"><div class="brand"><div class="logo">O</div>All Aboard</div><div class="pill">V12 - Location Match · V8 Loop</div></div>
 <section class="screen">
 <div class="hero"><h1>Friday timetable tracking</h1><p>Train positions are estimated from the official Metro Friday timetable. The City Loop diagram is the exact layout carried forward from V8.</p></div>
 <div class="card">
@@ -75,6 +75,15 @@
 </svg>
 </div>
 <div class="service-list" id="services"></div>
+<div style="margin:18px 0 4px;padding:16px;border:1px solid #dfe6ef;border-radius:18px;background:#f8fbff">
+  <div style="font-weight:900;font-size:18px;margin-bottom:6px">Join your train chat</div>
+  <div style="font-size:13px;color:#6c7a8d;line-height:1.45;margin-bottom:12px">
+    All Aboard checks your phone location against the scheduled train positions. You must be within 300 metres of a service to enter its chat.
+  </div>
+  <button id="verifyChatBtn" style="width:100%;border:0;border-radius:14px;padding:14px 16px;background:#7440e9;color:white;font-weight:900;font-size:16px;cursor:pointer">📍 Verify my train & join chat</button>
+  <div id="verifyResult" style="font-size:13px;margin-top:10px;color:#6c7a8d;line-height:1.45"></div>
+</div>
+
 </div>
 </section></div>
 <script>
@@ -103,4 +112,141 @@ function tripPosition(trip,now){const s=timedStops(trip);let n=now;if(n<240&&s[0
 function drawTrain(trip,info){if(!info.p)return;const [x,y]=info.p;const g=svgEl('g',{class:trip.direction==='To City'?'train-city':''});const r=svgEl('rect',{x:x-24,y:y-14,width:48,height:28,rx:14,class:'train-box'});g.appendChild(r);const ic=svgEl('text',{x:x-8,y:y+5,class:'train-icon'});ic.textContent='🚆';g.appendChild(ic);const ar=svgEl('text',{x:x-31,y:y+8,class:'train-arrow','font-weight':'900','font-size':'26','text-anchor':'middle'});ar.textContent=trip.direction==='To City'?'↑':'↓';g.appendChild(ar);const tm=svgEl('text',{x:x-52,y:y+4,class:'train-time','text-anchor':'end'});tm.textContent=info.first.t+' from '+info.first.s;g.appendChild(tm);trainLayer.appendChild(g)}
 function render(){const now=melNow();document.getElementById('clock').textContent=new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Melbourne',hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date());trainLayer.innerHTML='';const active=[];TRIPS.forEach(t=>{const p=tripPosition(t,now.n);if(p)active.push([t,p])});active.forEach(([t,p])=>drawTrain(t,p));document.getElementById('count').textContent=active.length;const box=document.getElementById('services');box.innerHTML='';active.slice().sort((a,b)=>timedStops(a[0])[0].x-timedStops(b[0])[0].x).forEach(([t,p])=>{const d=document.createElement('div');d.className='service';const arrow=t.direction==='To City'?'↑':'↓';d.innerHTML='<b>'+arrow+' '+p.first.t+' from '+p.first.s+'</b><div class="muted">Scheduled between '+p.from+' and '+p.to+' · destination '+p.last.s+'</div>';box.appendChild(d)})}
 drawStations();render();setInterval(render,10000);
+
+const CHAT_RADIUS_METERS=300;
+
+function distanceMeters(lat1,lon1,lat2,lon2){
+  const R=6371000,r=x=>x*Math.PI/180;
+  const dLat=r(lat2-lat1),dLon=r(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+// Approximate station coordinates for the Hurstbridge corridor.
+// These are used only for V12's timetable-location prototype.
+const GEO={
+"Jolimont":[-37.8165,144.9841],
+"West Richmond":[-37.8149,144.9914],
+"North Richmond":[-37.8102,144.9924],
+"Collingwood":[-37.8045,144.9935],
+"Victoria Park":[-37.7992,144.9945],
+"Clifton Hill":[-37.7887,144.9954],
+"Westgarth":[-37.7806,144.9958],
+"Dennis":[-37.7792,145.0084],
+"Fairfield":[-37.7790,145.0169],
+"Alphington":[-37.7784,145.0312],
+"Darebin":[-37.7748,145.0386],
+"Ivanhoe":[-37.7699,145.0454],
+"Eaglemont":[-37.7638,145.0539],
+"Heidelberg":[-37.7571,145.0607],
+"Rosanna":[-37.7429,145.0660],
+"Macleod":[-37.7260,145.0693],
+"Watsonia":[-37.7105,145.0838],
+"Greensborough":[-37.7046,145.1030],
+"Montmorency":[-37.7153,145.1215],
+"Eltham":[-37.7136,145.1478],
+"Diamond Creek":[-37.6733,145.1587],
+"Wattle Glen":[-37.6639,145.1817],
+"Hurstbridge":[-37.6384,145.1928],
+"Flinders Street":[-37.8183,144.9671],
+"Southern Cross":[-37.8184,144.9525],
+"Flagstaff":[-37.8119,144.9556],
+"Melbourne Central":[-37.8100,144.9628],
+"Parliament":[-37.8111,144.9731]
+};
+
+function tripGeoPosition(trip, now){
+  const s=timedStops(trip);
+  let n=now;
+  if(n<240 && s[0].x>1200)n+=1440;
+  if(n<s[0].x||n>s[s.length-1].x)return null;
+
+  for(let i=0;i<s.length-1;i++){
+    if(n>=s[i].x && n<=s[i+1].x){
+      const A=GEO[s[i].s],B=GEO[s[i+1].s];
+      if(!A||!B) return null;
+      const den=Math.max(.1,s[i+1].x-s[i].x);
+      const f=(n-s[i].x)/den;
+      return {
+        latitude:A[0]+(B[0]-A[0])*f,
+        longitude:A[1]+(B[1]-A[1])*f,
+        first:s[0],
+        last:s[s.length-1],
+        from:s[i].s,
+        to:s[i+1].s
+      };
+    }
+  }
+  return null;
+}
+
+function bestServiceForUser(lat,lon){
+  const now=melNow().n;
+  const candidates=[];
+  TRIPS.forEach(trip=>{
+    const g=tripGeoPosition(trip,now);
+    if(!g)return;
+    const d=distanceMeters(lat,lon,g.latitude,g.longitude);
+    candidates.push({trip,geo:g,distance:d});
+  });
+  candidates.sort((a,b)=>a.distance-b.distance);
+  return candidates[0]||null;
+}
+
+function serviceLabel(match){
+  if(!match)return "";
+  const t=match.trip;
+  const first=match.geo.first;
+  const dest=match.geo.last.s;
+  return first.t+" "+first.s+" to "+dest;
+}
+
+function saveVerifiedService(match,accuracy){
+  const data={
+    verifiedAt:Date.now(),
+    expiresAt:Date.now()+5*60*1000,
+    radiusMeters:CHAT_RADIUS_METERS,
+    distanceMeters:Math.round(match.distance),
+    gpsAccuracy:Math.round(accuracy||0),
+    direction:match.trip.direction,
+    origin:match.geo.first.s,
+    departure:match.geo.first.t,
+    destination:match.geo.last.s,
+    serviceLabel:serviceLabel(match)
+  };
+  localStorage.setItem("allAboardVerifiedService",JSON.stringify(data));
+  return data;
+}
+
+const verifyBtn=document.getElementById("verifyChatBtn");
+if(verifyBtn){
+  verifyBtn.addEventListener("click",()=>{
+    const box=document.getElementById("verifyResult");
+    box.textContent="Requesting your location…";
+    if(!navigator.geolocation){
+      box.textContent="Location is not available in this browser.";
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const c=pos.coords;
+      const match=bestServiceForUser(c.latitude,c.longitude);
+      if(!match){
+        box.textContent="No scheduled Hurstbridge service could be matched right now.";
+        return;
+      }
+
+      const tolerance=CHAT_RADIUS_METERS + Math.min(Number(c.accuracy)||0,150);
+      if(match.distance<=tolerance){
+        const saved=saveVerifiedService(match,c.accuracy);
+        box.innerHTML="✓ Verified near <b>"+saved.serviceLabel+"</b> ("+Math.round(match.distance)+" m from estimated train position). Opening chat…";
+        setTimeout(()=>location.href="chat.html",650);
+      }else{
+        box.innerHTML="Not close enough to a scheduled train. Nearest service is <b>"+serviceLabel(match)+"</b>, about "+Math.round(match.distance)+" m away. You need to be within "+CHAT_RADIUS_METERS+" m.";
+      }
+    },err=>{
+      box.textContent="Location could not be used: "+err.message;
+    },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  });
+}
+
 </script></body></html>

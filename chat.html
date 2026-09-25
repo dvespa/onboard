@@ -68,12 +68,34 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Se
   font-size:20px;font-weight:900;cursor:pointer
 }
 .people{font-size:14px;font-weight:900}
+
+.gate{display:none;padding:22px}
+.gate.active{display:block}
+.gate-box{background:#fff7e6;border:1px solid #f1d79a;border-radius:18px;padding:18px;text-align:center}
+.gate-box h2{margin:0 0 8px}
+.gate-box p{color:#6c7a8d;line-height:1.45}
+.gate-box a{display:inline-block;margin-top:10px;text-decoration:none}
+.verify-pill{display:inline-block;margin-top:8px;padding:6px 10px;border-radius:999px;background:#eaf8f0;color:#286946;font-weight:900;font-size:12px}
 </style>
 </head>
 <body>
 <div class="app">
 
-  <div id="confirmPage" class="confirm-page">
+  
+<div id="locationGate" class="gate">
+  <div class="topbar">
+    <a class="back" href="index.html">← Menu</a>
+    <div class="title">Chat</div>
+    <div style="width:50px"></div>
+  </div>
+  <div class="gate-box">
+    <h2>📍 Train verification required</h2>
+    <p>You can only chat with travellers on the same service. Verify your location against the timetable before entering a train room.</p>
+    <a class="btn primary" href="live_trains.html">Verify my train</a>
+  </div>
+</div>
+
+<div id="confirmPage" class="confirm-page">
     <div class="topbar">
       <a class="back" href="index.html">← Menu</a>
       <div class="title">Chat</div>
@@ -86,7 +108,7 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Se
         <div class="confirm">
           <div class="train-icon">🚆</div>
           <div class="eyebrow">You are on Train</div>
-          <div class="service">9:57 Hurstbridge to City</div>
+          <div class="service"><span id="serviceLabelText">Verified train</span></div>
           <p class="sub">Start chatting to your fellow travellers.</p>
           <button id="joinBtn" class="btn primary">💬 Join Train Chat</button>
           <button class="btn secondary" onclick="location.href='live_trains.html'">🚆 Choose a different train</button>
@@ -98,7 +120,7 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Se
   <div id="room" class="room">
     <div class="topbar">
       <button id="roomBack" class="back" style="border:0;background:none;font-size:16px">← Back</button>
-      <div class="title">9:57 Hurstbridge to City</div>
+      <div class="title"><span id="serviceLabelText">Verified train</span></div>
       <div class="people">👥 6</div>
     </div>
 
@@ -106,8 +128,8 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Se
       <div class="service-row">
         <div class="ico">🚆</div>
         <div>
-          <div style="font-weight:900">Hurstbridge → City</div>
-          <div class="status"><span class="green">●</span> Departed 9:57 · Scheduled service</div>
+          <div style="font-weight:900"><span id="routeText">Verified route</span></div>
+          <div class="status"><span class="green">●</span> <span id="departText">Verified scheduled service</span></div>
         </div>
       </div>
     </div>
@@ -147,10 +169,37 @@ body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,"Se
 </div>
 
 <script>
+const gate=document.getElementById("locationGate");
 const confirmPage=document.getElementById("confirmPage");
 const room=document.getElementById("room");
+const verifiedRaw=localStorage.getItem("allAboardVerifiedService");
+let verified=null;
+try{verified=verifiedRaw?JSON.parse(verifiedRaw):null}catch(e){verified=null}
+
+function verificationValid(){
+  return verified && verified.expiresAt && Date.now()<verified.expiresAt;
+}
+
+function showGate(){
+  gate.classList.add("active");
+  confirmPage.classList.add("hidden");
+  room.classList.remove("active");
+}
+
+function applyVerifiedService(){
+  if(!verificationValid()){showGate();return}
+  const label=verified.serviceLabel || (verified.departure+" "+verified.origin+" to "+verified.destination);
+  document.querySelectorAll("#serviceLabelText").forEach(el=>el.textContent=label);
+  document.getElementById("routeText").textContent=verified.origin+" → "+verified.destination;
+  document.getElementById("departText").textContent="Departed "+verified.departure+" · verified within "+verified.radiusMeters+" m";
+  gate.classList.remove("active");
+  confirmPage.classList.remove("hidden");
+}
+
+applyVerifiedService();
 
 document.getElementById("joinBtn").addEventListener("click",()=>{
+  if(!verificationValid()){showGate();return}
   confirmPage.classList.add("hidden");
   room.classList.add("active");
   window.scrollTo(0,0);
@@ -163,6 +212,10 @@ document.getElementById("roomBack").addEventListener("click",()=>{
 });
 
 function sendMessage(){
+  if(!verificationValid()){
+    showGate();
+    return;
+  }
   const input=document.getElementById("msgInput");
   const value=input.value.trim();
   if(!value)return;
@@ -178,6 +231,14 @@ document.getElementById("sendBtn").addEventListener("click",sendMessage);
 document.getElementById("msgInput").addEventListener("keydown",e=>{
   if(e.key==="Enter")sendMessage();
 });
+
+// Re-check the local verification window every 30 seconds.
+// V12 prototype uses a 5-minute grace period after successful verification.
+setInterval(()=>{
+  if(room.classList.contains("active") && !verificationValid()){
+    showGate();
+  }
+},30000);
 </script>
 </body>
 </html>
